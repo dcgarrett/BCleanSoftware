@@ -17,7 +17,6 @@ def createTable(db):
 
 def insertEntry(db, IPin, roomIn, deviceTypeIn, batteryStatusIn, status): 
 	cursor = db.cursor()
-	# Insert user 1
 	cursor.execute('''INSERT INTO entries(IP, room, deviceType, batteryStatus, commandStatus)
        	           VALUES(?,?,?,?,?)''', (IPin, roomIn, deviceTypeIn, batteryStatusIn, status))
 	print('Inserted entry successfully')
@@ -25,3 +24,14 @@ def insertEntry(db, IPin, roomIn, deviceTypeIn, batteryStatusIn, status):
 	db.commit()
 
 
+def updateEntry(db, room, newStatus):
+	cursor = db.cursor()
+	cursor.execute(''' UPDATE entries SET commandStatus = ? WHERE room = ? ''', (newStatus, room) )
+	print("Successfully updated database)
+
+def searchForEntry(db, room):
+	cursor = db.cursor()
+	cursor.execute('''SELECT commandStatus from entries WHERE room = ?''', (room,))
+	roomStatus = cursor.fetchone()
+
+	return roomStatus

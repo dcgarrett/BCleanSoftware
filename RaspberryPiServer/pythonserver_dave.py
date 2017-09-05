@@ -3,8 +3,9 @@ import threading
 import sql_functions as sq
 #reload(sq)
 
+bind_ip = [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
 #bind_ip = '172.24.1.1'
-bind_ip = '10.254.58.49' # Dave testing
+#bind_ip = '10.254.58.49' # Dave testing
 bind_port = 9999
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -14,7 +15,7 @@ server.bind((bind_ip, bind_port))
 server.listen(5)  # max backlog of connections
 
 # Databse stuff:
-
+# Only need these lines if you're initializing a db:
 #db = sq.openSQLdb("testdb")
 #sq.createTable(db)
 
@@ -38,17 +39,26 @@ def handle_client_connection(client_socket,IP):
     room, deviceType, batteryStatus, commandStatus = parseInput(request)
     print('Received %s %s %s %s ' % parseInput(request) )
     print('from IP address %s: ' % IP)
-    client_socket.send('Message received by server \r')
 
+    # Log all entries
     db = sq.openSQLdb("testdb")
     sq.insertEntry(db,IP,room,deviceType,batteryStatus,commandStatus)
     db.close()
 
-    if request ==str(5).encode():
-        writeToFile(request)
+    if deviceType == "DISPENSER":
+        # Check if the toilet was flushed
+        if sq.searchForEntry(db, room) == "FLUSH":
+            client_socket.send('FLUSH')
+        else:
+            client_socket.send('Message received by server \r')
         client_socket.close()
-    else:
-        writeToFile(request)
+    else: # Toilet
+        # Depending if it was flushed, update database
+        if commandStatus == "FLUSH":
+            sq.updateEntry(db, room, "FLUSH")
+            client_socket.send('Message received by server \r')
+        else:
+            client_socket.send('Message received by server \r')
         client_socket.close()
 
 while True:
