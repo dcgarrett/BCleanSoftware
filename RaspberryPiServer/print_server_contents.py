@@ -1,6 +1,6 @@
 import sqlite3 as lite
 
-conn = lite.connect('testdb')
+conn = lite.connect('currentDB')
 cur = conn.cursor()
 
 def get_posts():

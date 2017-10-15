@@ -24,14 +24,28 @@ def insertEntry(db, IPin, roomIn, deviceTypeIn, batteryStatusIn, status):
 	db.commit()
 
 
-def updateEntry(db, room, newStatus):
+def updateEntry(db, room, newStatus, deviceType):
 	cursor = db.cursor()
-	cursor.execute(''' UPDATE entries SET commandStatus = ? WHERE room = ? ''', (newStatus, room) )
-	print("Successfully updated database)
+	
+	cursor.execute('''UPDATE entries SET commandStatus = ? WHERE room = ? and deviceType = ? ''', (newStatus, room, deviceType,) )
+	#cursor.execute('''UPDATE entries SET commandStatus = ? WHERE room = ?''', (newStatus, room,) )
+	print("Successfully updated database")
+	db.commit()
 
-def searchForEntry(db, room):
+def searchForEntry(db, room,deviceType):
 	cursor = db.cursor()
-	cursor.execute('''SELECT commandStatus from entries WHERE room = ?''', (room,))
+	cursor.execute('''SELECT commandStatus from entries WHERE room = ? and deviceType = ?''', (room,deviceType,))
 	roomStatus = cursor.fetchone()
 
 	return roomStatus
+
+def checkIfEntryExists(db,room,deviceType):
+	cursor = db.cursor()
+	cursor.execute('''SELECT commandStatus from entries WHERE room = ? and deviceType = ?''', (room,deviceType,))
+	data=cursor.fetchone()
+    	if data is None:
+       		print('There is no component named this ')
+		return False
+    	else:
+        	print('Component found')
+		return True
